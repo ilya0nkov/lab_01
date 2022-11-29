@@ -37,11 +37,11 @@ class Options():
     def __init__(self):
         hashsum = self.hash_file()
         self.hash_check(hashsum)
-        self.write_csv()
+        self.database_writer()
         hashsum_new = self.hash_file()
         self.hash_new(hashsum_new)
 
-    ## контрольная сумма
+    # контрольная сумма
     # проверка текущей хэш суммы
     def hash_file(self):
         h = hashlib.sha1()
@@ -52,7 +52,6 @@ class Options():
                 chunk = file.read(1024)
                 h.update(chunk)
         hashsum = h.hexdigest()
-        ###print(hashsum, "1")
         return hashsum
 
     # сравнение текущей хэш суммы с предыдущей
@@ -64,32 +63,54 @@ class Options():
         if last_hash != hex_digest:
             print("Error. File was changed")
 
-    def write_csv(self):
-        # резервирование переменных под столбцы таблицы
-        company_id = int(input("company_id\n"))
+    # резервирование переменных под столбцы таблицы
+    # company_id = int(input("company_id\n"))
+    # запись в файл
+    # utf-8 может конфликтовать в windows с текстом на латинице, поэтому cp1251
+    def database_writer(self):
+        database = "DATABASE.csv"
         company_name = str(input("company_name\n"))
+        with open(database, "r", encoding="cp1251", newline="") as csvfile:
+            reader = csv.DictReader(csvfile, delimiter=";")
+            max_company_id = 0
+            for row in reader:
+                if str(row["company_name"]) == company_name:
+                    company_id = int(row["company_id"])
+                    break
+                elif max_company_id < int(row["company_id"]):
+                    max_company_id = int(row["company_id"])
+            else:
+                company_id = max_company_id + 1
+
         company_inn = str(input("company_inn\n"))
         currency = {1: "RUB", 2: "USD", 3: "EUR"}
         currency_select = int(input("1: RUB, 2: USD, 3: EUR\n"))
         sum_total = int(input("sum_total\n"))
         sum_nds = sum_total * 0.87
+        order_status = {1: "Awaiting confirmation", 2: "Paid",
+                        3: "On the way", 4: "Delivered", 5: "Cancelled"}
+        order_status_select = int(input("Order status:\n"
+                                        "1: Awaiting confirmation, 2: Paid, \n"
+                                        "3: On the way, 4: Delivered, 5: Cancelled\n"))
         print(f"name: {company_name}\t | currency: {currency[currency_select]}\n"
-              f"sum: {sum_total}\t | sum with nds: {sum_nds}")
+              f"sum: {sum_total}\t | sum with nds: {sum_nds}\n"
+              f"order status: {order_status[order_status_select]}\n")
 
-        # запись в файл
-        # utf-8 может конфликтовать в windows с текстом на латинице, поэтому cp1251
-        with open("DATABASE.csv", "a", encoding="cp1251", newline="") as file:
+        with open(database, "a", encoding="cp1251", newline="") as file:
             writer = csv.writer(file, delimiter=";")
             writer.writerow(
-                [company_id, company_name, company_inn,
-                 currency[currency_select], sum_total, sum_nds]
+                [company_id,
+                    company_name, company_inn, currency[currency_select],
+                 sum_total, sum_nds, order_status[order_status_select]]
             )
 
     # запись новой хэш суммы
     def hash_new(self, hashsum_new):
         new_hash = open("hashsum.txt", "w").write(hashsum_new)
 
-
+    def export_filters(self):
+        filter = int(input(""))
+        filters = {}
 
 
 
