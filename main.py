@@ -35,11 +35,12 @@ class Window():
 
 class Options():
     def __init__(self):
-        hashsum = self.hash_file()
-        self.hash_check(hashsum)
-        self.database_writer()
-        hashsum_new = self.hash_file()
-        self.hash_new(hashsum_new)
+        #hashsum = self.hash_file()
+        #self.hash_check(hashsum)
+        #self.database_writer()
+        #hashsum_new = self.hash_file()
+        #self.hash_new(hashsum_new)
+        self.export_filters()
 
     # контрольная сумма
     # проверка текущей хэш суммы
@@ -50,6 +51,7 @@ class Options():
             chunk = 0
             while chunk != b'':
                 chunk = file.read(1024)
+
                 h.update(chunk)
         hashsum = h.hexdigest()
         return hashsum
@@ -106,16 +108,23 @@ class Options():
 
     # запись новой хэш суммы
     def hash_new(self, hashsum_new):
-        new_hash = open("hashsum.txt", "w").write(hashsum_new)
+        open("hashsum.txt", "w").write(hashsum_new)
 
+    # вывод файла по заданному фильтру
     def export_filters(self):
-        filter = int(input(""))
-        filters = {}
+        # ООО "АНКОР ФИНТЕК"
+        filter = str(input("filter:\n"))
+        with open("EXPORT.csv", "w", encoding="cp1251", newline="") as export:
+            writer = csv.writer(export, delimiter=";")
 
+            with open("DATABASE.csv", "r", encoding="cp1251", newline="") as data:
+                reader = csv.DictReader(data, delimiter=";")
 
-
-
-
+                for row in reader:
+                    if str(row["company_name"]) == filter:
+                        writer.writerow(str(row["company_id"]).split() + str(row["company_name"]).splitlines() +
+                                        str(row["company_inn"]).split() + str(row["currency"]).split() +
+                                        str(row["sum_total"]).split() + str(row["sum_nds"]).split() + str(row["order_status"]).splitlines())
 
 
 
